@@ -15,7 +15,7 @@ export default function LibrarianRequests() {
     queryKey: ['pending-requests'],
     queryFn: async () => {
       const response = await api.get('/borrow');
-      return response.data.filter((r: any) => ['pendingBorrow', 'pendingReturn'].includes(r.status));
+      return response.data.filter((r: any) => ['pending', 'pendingReturn'].includes(r.status));
     },
   });
 
@@ -73,8 +73,8 @@ export default function LibrarianRequests() {
     );
   }
 
-  const borrowRequests = requests?.filter((r: any) => r.status === 'pendingBorrow') || [];
-  const returnRequests = requests?.filter((r: any) => r.status === 'pendingReturn') || [];
+  const borrowRequests = requests?.filter((r: any) => r.status === 'pending' && r.book) || [];
+  const returnRequests = requests?.filter((r: any) => r.status === 'pendingReturn' && r.book) || [];
 
   return (
     <div className="space-y-8">
@@ -107,8 +107,8 @@ export default function LibrarianRequests() {
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">{request.profiles?.name}</TableCell>
                     <TableCell>{request.profiles?.student_id}</TableCell>
-                    <TableCell>{request.books.title}</TableCell>
-                    <TableCell>{format(new Date(request.created_at), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{request.book.title}</TableCell>
+                    <TableCell>{request.created_at ? format(new Date(request.created_at), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
@@ -117,7 +117,7 @@ export default function LibrarianRequests() {
                           onClick={() =>
                             handleBorrowMutation.mutate({
                               recordId: request.id,
-                              bookId: request.books.id,
+                              bookId: request.book.id,
                               accept: true,
                             })
                           }
@@ -132,7 +132,7 @@ export default function LibrarianRequests() {
                           onClick={() =>
                             handleBorrowMutation.mutate({
                               recordId: request.id,
-                              bookId: request.books.id,
+                              bookId: request.book.id,
                               accept: false,
                             })
                           }
@@ -180,7 +180,7 @@ export default function LibrarianRequests() {
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">{request.profiles?.name}</TableCell>
                     <TableCell>{request.profiles?.student_id}</TableCell>
-                    <TableCell>{request.books.title}</TableCell>
+                    <TableCell>{request.book.title}</TableCell>
                     <TableCell>{format(new Date(request.borrow_date), 'MMM dd, yyyy')}</TableCell>
                     <TableCell>
                       <span
@@ -201,7 +201,7 @@ export default function LibrarianRequests() {
                           onClick={() =>
                             handleReturnMutation.mutate({
                               recordId: request.id,
-                              bookId: request.books.id,
+                              bookId: request.book.id,
                               dueDate: request.due_date,
                               accept: true,
                             })
@@ -217,7 +217,7 @@ export default function LibrarianRequests() {
                           onClick={() =>
                             handleReturnMutation.mutate({
                               recordId: request.id,
-                              bookId: request.books.id,
+                              bookId: request.book.id,
                               dueDate: request.due_date,
                               accept: false,
                             })

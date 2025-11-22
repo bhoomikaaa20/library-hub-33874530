@@ -48,7 +48,7 @@ const createBorrowRequest = async (req, res) => {
         }
 
         const newBorrow = new Borrow({
-            user: req.user._id,
+            user: req.user.userId,
             book: bookId,
             status: 'pending',
             borrowDate: new Date()

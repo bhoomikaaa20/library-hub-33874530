@@ -8,7 +8,7 @@ interface User {
   email: string;
   role: UserRole;
 }
-f
+
 interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;

@@ -20,6 +20,14 @@ export default function StudentBooks() {
     },
   });
 
+  const { data: borrows } = useQuery({
+    queryKey: ['borrows', user.id],
+    queryFn: async () => {
+      const response = await api.get('/borrow/user');
+      return response.data;
+    },
+  });
+
   const borrowMutation = useMutation({
     mutationFn: async (bookId: string) => {
       const response = await api.post('/borrow/request', {
@@ -29,6 +37,7 @@ export default function StudentBooks() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['borrows', user.id] });
       toast({
         title: 'Request submitted',
         description: 'Your borrow request has been sent to the librarian.',
@@ -60,8 +69,9 @@ export default function StudentBooks() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {books?.map((book) => {
-          const available = book.stock - book.borrowed_count;
+          const available = book.availableCopies;
           const canBorrow = available > 0;
+          const hasPendingRequest = borrows?.some(borrow => borrow.bookId === book._id && borrow.status === 'pending');
 
           return (
             <Card key={book.id} className="hover:shadow-medium transition-shadow">
@@ -86,7 +96,7 @@ export default function StudentBooks() {
                 </p>
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm font-medium">
-                    {available} of {book.stock} available
+                    {available} of {book.totalCopies} available
                   </span>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${canBorrow
@@ -101,10 +111,10 @@ export default function StudentBooks() {
               <CardFooter>
                 <Button
                   className="w-full"
-                  disabled={!canBorrow || borrowMutation.isPending}
-                  onClick={() => borrowMutation.mutate(book.id)}
+                  disabled={!canBorrow || borrowMutation.isPending || hasPendingRequest}
+                  onClick={() => borrowMutation.mutate(book._id)}
                 >
-                  {borrowMutation.isPending ? 'Requesting...' : 'Borrow Book'}
+                  {borrowMutation.isPending ? 'Requesting...' : hasPendingRequest ? 'Request Already Sent' : 'Borrow Book'}
                 </Button>
               </CardFooter>
             </Card>
