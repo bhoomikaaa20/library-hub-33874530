@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { BookOpen } from 'lucide-react';
-import { signUp, signIn } from '@/lib/auth';
+import { signUp } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 type UserRole = 'student' | 'librarian';
 type AuthMode = 'signin' | 'signup';
@@ -19,6 +20,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login, register } = useAuth();
 
   // Student signup form
   const [studentSignup, setStudentSignup] = useState({
@@ -79,10 +81,9 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // For now, use studentId as email until backend supports studentId login
-      const { error } = await signIn(studentSignin.studentId, studentSignin.password);
+      const { success, error } = await login(studentSignin.studentId, studentSignin.password);
 
-      if (error) throw new Error(error);
+      if (!success) throw new Error(error);
 
       navigate('/student');
     } catch (error: any) {
@@ -104,22 +105,22 @@ export default function Auth() {
       // Hardcoded librarian credentials check
       if (librarianSignin.librarianId === 'LIB001' && librarianSignin.password === 'admin123') {
         // For now, use hardcoded email for librarian
-        const { error } = await signIn('librarian@library.com', 'librarian123');
+        const { success, error } = await login('librarian@library.com', 'librarian123');
 
-        if (error) {
+        if (!success) {
           // If account doesn't exist, create it using the auth API
-          const { error: signupError } = await signUp(
+          const { success: signupSuccess, error: signupError } = await register(
             'Head Librarian',
             'librarian@library.com',
             'librarian123',
             'librarian'
           );
 
-          if (signupError) throw new Error(signupError);
+          if (!signupSuccess) throw new Error(signupError);
 
           // Try signing in again
-          const { error: retryError } = await signIn('librarian@library.com', 'librarian123');
-          if (retryError) throw new Error(retryError);
+          const { success: retrySuccess, error: retryError } = await login('librarian@library.com', 'librarian123');
+          if (!retrySuccess) throw new Error(retryError);
         }
 
         navigate('/librarian');

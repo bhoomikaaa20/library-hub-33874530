@@ -15,8 +15,8 @@ export default function StudentBooks() {
   const { data: books, isLoading } = useQuery({
     queryKey: ['books'],
     queryFn: async () => {
-      const data = await api.get('/books');
-      return data;
+      const response = await api.get('/books');
+      return response.data;
     },
   });
 

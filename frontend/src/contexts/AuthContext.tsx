@@ -8,11 +8,11 @@ interface User {
   email: string;
   role: UserRole;
 }
-
+f
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
+  login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string, role: UserRole, studentId?: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   role: UserRole | null;
   loading: boolean;
@@ -51,9 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { identifier, password });
       const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -65,9 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: UserRole) => {
+  const register = async (name: string, email: string, password: string, role: UserRole, studentId?: string, phone?: string) => {
     try {
-      await api.post('/auth/register', { name, email, password, role });
+      await api.post('/auth/register', { name, email, password, role, studentId, phone });
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.response?.data?.error || 'Registration failed' };
