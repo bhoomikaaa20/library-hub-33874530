@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import api from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
@@ -15,6 +16,8 @@ export default function LibrarianBooks() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<any>(null);
+  const [deleteBook, setDeleteBook] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -47,7 +50,7 @@ export default function LibrarianBooks() {
       };
 
       if (editingBook) {
-        const response = await api.put(`/books/${editingBook.id}`, payload);
+        const response = await api.put(`/books/${editingBook._id}`, payload);
         return response.data;
       } else {
         const response = await api.post('/books', payload);
@@ -248,7 +251,10 @@ export default function LibrarianBooks() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteMutation.mutate(book.id)}
+                      onClick={() => {
+                        setDeleteBook(book);
+                        setIsDeleteDialogOpen(true);
+                      }}
                       disabled={deleteMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -260,6 +266,37 @@ export default function LibrarianBooks() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Book</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteBook?.title}" by {deleteBook?.author}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteDialogOpen(false);
+              setDeleteBook(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteBook) {
+                  deleteMutation.mutate(deleteBook._id);
+                  setIsDeleteDialogOpen(false);
+                  setDeleteBook(null);
+                }
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

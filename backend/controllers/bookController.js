@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const Book = require('../models/Book');
+const Borrow = require('../models/Borrow');
 
 // Get all books
 const getAllBooks = async (req, res) => {
@@ -26,7 +28,7 @@ const getBookById = async (req, res) => {
 // Create a new book
 const createBook = async (req, res) => {
     try {
-        const { title, author, isbn, description, genre, publishedYear, availableCopies, totalCopies } = req.body;
+        const { title, author, isbn, description, genre, publishedYear, availableCopies, totalCopies, image_url } = req.body;
 
         // Basic validation
         if (!title || !author || !isbn) {
@@ -41,7 +43,8 @@ const createBook = async (req, res) => {
             genre,
             publishedYear,
             availableCopies,
-            totalCopies
+            totalCopies,
+            image_url
         });
 
         const savedBook = await newBook.save();
@@ -93,6 +96,17 @@ const updateBook = async (req, res) => {
 // Delete a book
 const deleteBook = async (req, res) => {
     try {
+        // Validate the book ID
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid book ID' });
+        }
+
+        // Check for active borrows
+        const activeBorrows = await Borrow.find({ book: req.params.id, status: 'approved' });
+        if (activeBorrows.length > 0) {
+            return res.status(409).json({ message: 'Book cannot be deleted as it is currently borrowed' });
+        }
+
         const deletedBook = await Book.findByIdAndDelete(req.params.id);
         if (!deletedBook) {
             return res.status(404).json({ message: 'Book not found' });
