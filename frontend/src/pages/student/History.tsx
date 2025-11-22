@@ -17,6 +17,7 @@ export default function StudentHistory() {
     queryKey: ['borrowRecords', user?.id],
     queryFn: async () => {
       const response = await api.get('/borrow/user');
+      console.log('API response data:', response.data);
       return response.data;
     },
   });
@@ -86,15 +87,15 @@ export default function StudentHistory() {
             <TableBody>
               {records.map((record: any) => (
                 <TableRow key={record.id}>
-                  <TableCell className="font-medium">{record.books.title}</TableCell>
+                  <TableCell className="font-medium">{record.book?.title || 'N/A'}</TableCell>
                   <TableCell>
-                    {record.borrow_date ? format(new Date(record.borrow_date), 'MMM dd, yyyy') : '-'}
+                    {record.borrowDate ? format(new Date(record.borrowDate), 'MMM dd, yyyy') : '-'}
                   </TableCell>
                   <TableCell>
-                    {record.due_date ? format(new Date(record.due_date), 'MMM dd, yyyy') : '-'}
+                    {record.dueDate ? format(new Date(record.dueDate), 'MMM dd, yyyy') : '-'}
                   </TableCell>
                   <TableCell>
-                    {record.return_date ? format(new Date(record.return_date), 'MMM dd, yyyy') : '-'}
+                    {record.returnDate ? format(new Date(record.returnDate), 'MMM dd, yyyy') : '-'}
                   </TableCell>
                   <TableCell>{getStatusBadge(record.status)}</TableCell>
                   <TableCell>
