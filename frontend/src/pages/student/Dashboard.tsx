@@ -43,6 +43,17 @@ export default function StudentDashboard() {
               </NavLink>
 
               <NavLink
+                to="/student/my-books"
+                className="px-4 py-2 rounded-md hover:bg-muted transition-colors"
+                activeClassName="bg-muted font-medium"
+              >
+                <span className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  My Borrowed Books
+                </span>
+              </NavLink>
+
+              <NavLink
                 to="/student/history"
                 className="px-4 py-2 rounded-md hover:bg-muted transition-colors"
                 activeClassName="bg-muted font-medium"

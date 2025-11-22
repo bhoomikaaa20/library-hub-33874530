@@ -4,7 +4,8 @@ const {
     getAllBorrows,
     getBorrowsByUser,
     createBorrowRequest,
-    updateBorrowStatus
+    updateBorrowStatus,
+    returnBook
 } = require('../controllers/borrowController');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -24,5 +25,6 @@ router.get('/', authenticateToken, getAllBorrows);
 router.get('/user', authenticateToken, getBorrowsByUser);
 router.post('/request', authenticateToken, borrowValidation, createBorrowRequest);
 router.put('/:id/status', authenticateToken, statusValidation, updateBorrowStatus);
+router.put('/:id/return', authenticateToken, returnBook);
 
 module.exports = router;

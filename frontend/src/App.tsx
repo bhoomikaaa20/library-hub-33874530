@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/student/Dashboard";
 import StudentBooks from "./pages/student/Books";
 import StudentHistory from "./pages/student/History";
+import MyBorrowedBooks from "./pages/student/MyBorrowedBooks";
 import LibrarianDashboard from "./pages/librarian/Dashboard";
 import LibrarianBooks from "./pages/librarian/Books";
 import LibrarianDetails from "./pages/librarian/Details";
@@ -49,7 +50,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            
+
             {/* Student Routes */}
             <Route path="/student" element={
               <ProtectedRoute requiredRole="student">
@@ -59,8 +60,9 @@ const App = () => (
               <Route index element={<Navigate to="/student/books" replace />} />
               <Route path="books" element={<StudentBooks />} />
               <Route path="history" element={<StudentHistory />} />
+              <Route path="my-books" element={<MyBorrowedBooks />} />
             </Route>
-            
+
             {/* Librarian Routes */}
             <Route path="/librarian" element={
               <ProtectedRoute requiredRole="librarian">

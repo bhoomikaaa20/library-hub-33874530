@@ -13,7 +13,7 @@ const borrowSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected', 'returned'],
+        enum: ['pending', 'approved', 'rejected', 'pendingReturn', 'returned'],
         default: 'pending'
     },
     borrowDate: {

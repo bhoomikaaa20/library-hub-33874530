@@ -16,7 +16,7 @@ const getAllBorrows = async (req, res) => {
 // Get borrows for the authenticated user
 const getBorrowsByUser = async (req, res) => {
     try {
-        const borrows = await Borrow.find({ user: req.user._id }).populate('book', 'title author');
+        const borrows = await Borrow.find({ user: req.user.userId }).populate('book', 'title author');
         res.json(borrows);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching borrows', error: error.message });
@@ -39,7 +39,7 @@ const createBorrowRequest = async (req, res) => {
 
         // Check if user already has a pending or approved borrow for this book
         const existingBorrow = await Borrow.findOne({
-            user: req.user._id,
+            user: req.user.userId,
             book: bookId,
             status: { $in: ['pending', 'approved'] }
         });
@@ -62,6 +62,33 @@ const createBorrowRequest = async (req, res) => {
     }
 };
 
+// Return a book for the authenticated user
+const returnBook = async (req, res) => {
+    try {
+        const borrow = await Borrow.findById(req.params.id).populate('book user');
+
+        if (!borrow) {
+            return res.status(404).json({ message: 'Borrow request not found' });
+        }
+
+        // Verify the borrow belongs to the authenticated user
+        if (borrow.user._id.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({ message: 'You can only return your own borrows' });
+        }
+
+        // Set status to 'pendingReturn'
+        borrow.status = 'pendingReturn';
+
+        // Save changes
+        const updatedBorrow = await borrow.save();
+        await updatedBorrow.populate('user', 'name email');
+        await updatedBorrow.populate('book', 'title author');
+        res.json(updatedBorrow);
+    } catch (error) {
+        res.status(500).json({ message: 'Error returning book', error: error.message });
+    }
+};
+
 // Update borrow status (approve/reject by librarian, return by student)
 const updateBorrowStatus = async (req, res) => {
     try {
@@ -72,15 +99,19 @@ const updateBorrowStatus = async (req, res) => {
             return res.status(404).json({ message: 'Borrow request not found' });
         }
 
-        if (status === 'returned') {
-            // Allow borrower to return their own book
-            if (borrow.user._id.toString() !== req.user._id.toString()) {
-                return res.status(403).json({ message: 'You can only return your own borrows' });
-            }
-        } else {
-            // Only librarians can approve or reject
+        if (status === 'approved' || status === 'rejected') {
             if (req.user.role !== 'librarian') {
                 return res.status(403).json({ message: 'Only librarians can approve or reject borrow requests' });
+            }
+            if (borrow.status !== 'pending') {
+                return res.status(403).json({ message: 'Can only approve or reject pending requests' });
+            }
+        } else if (status === 'returned') {
+            if (req.user.role !== 'librarian') {
+                return res.status(403).json({ message: 'Only librarians can approve return requests' });
+            }
+            if (borrow.status !== 'approved' && borrow.status !== 'pendingReturn') {
+                return res.status(403).json({ message: 'Can only return approved or pending return borrows' });
             }
         }
 
@@ -111,5 +142,6 @@ module.exports = {
     getAllBorrows,
     getBorrowsByUser,
     createBorrowRequest,
-    updateBorrowStatus
+    updateBorrowStatus,
+    returnBook
 };
