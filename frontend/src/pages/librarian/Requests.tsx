@@ -21,7 +21,7 @@ export default function LibrarianRequests() {
 
   const handleBorrowMutation = useMutation({
     mutationFn: async ({ recordId, bookId, accept }: { recordId: string; bookId: string; accept: boolean }) => {
-      const status = accept ? 'approvedBorrow' : 'rejectedBorrow';
+      const status = accept ? 'approved' : 'rejected';
       const response = await api.put(`/borrow/${recordId}/status`, { status });
       return response.data;
     },
@@ -44,7 +44,7 @@ export default function LibrarianRequests() {
 
   const handleReturnMutation = useMutation({
     mutationFn: async ({ recordId, bookId, dueDate, accept }: { recordId: string; bookId: string; dueDate: string; accept: boolean }) => {
-      const status = accept ? 'returned' : 'approvedBorrow';
+      const status = accept ? 'returned' : 'rejected';
       const response = await api.put(`/borrow/${recordId}/status`, { status });
       return response.data;
     },
@@ -104,11 +104,11 @@ export default function LibrarianRequests() {
               </TableHeader>
               <TableBody>
                 {borrowRequests.map((request: any) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">{request.profiles?.name}</TableCell>
-                    <TableCell>{request.profiles?.student_id}</TableCell>
+                  <TableRow key={request._id}>
+                    <TableCell className="font-medium">{request.user?.name}</TableCell>
+                    <TableCell>{request.user?.studentId}</TableCell>
                     <TableCell>{request.book.title}</TableCell>
-                    <TableCell>{request.created_at ? format(new Date(request.created_at), 'MMM dd, yyyy') : 'N/A'}</TableCell>
+                    <TableCell>{request.createdAt ? format(new Date(request.createdAt), 'MMM dd, yyyy') : 'N/A'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
@@ -116,8 +116,8 @@ export default function LibrarianRequests() {
                           variant="default"
                           onClick={() =>
                             handleBorrowMutation.mutate({
-                              recordId: request.id,
-                              bookId: request.book.id,
+                              recordId: request._id,
+                              bookId: request.book._id,
                               accept: true,
                             })
                           }
@@ -131,8 +131,8 @@ export default function LibrarianRequests() {
                           variant="destructive"
                           onClick={() =>
                             handleBorrowMutation.mutate({
-                              recordId: request.id,
-                              bookId: request.book.id,
+                              recordId: request._id,
+                              bookId: request.book._id,
                               accept: false,
                             })
                           }
@@ -177,20 +177,20 @@ export default function LibrarianRequests() {
               </TableHeader>
               <TableBody>
                 {returnRequests.map((request: any) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">{request.profiles?.name}</TableCell>
-                    <TableCell>{request.profiles?.student_id}</TableCell>
+                  <TableRow key={request._id}>
+                    <TableCell className="font-medium">{request.user?.name}</TableCell>
+                    <TableCell>{request.user?.studentId}</TableCell>
                     <TableCell>{request.book.title}</TableCell>
-                    <TableCell>{format(new Date(request.borrow_date), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{format(new Date(request.borrowDate), 'MMM dd, yyyy')}</TableCell>
                     <TableCell>
                       <span
                         className={
-                          new Date() > new Date(request.due_date)
+                          new Date() > new Date(request.dueDate)
                             ? 'text-destructive font-medium'
                             : ''
                         }
                       >
-                        {format(new Date(request.due_date), 'MMM dd, yyyy')}
+                        {format(new Date(request.dueDate), 'MMM dd, yyyy')}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -200,9 +200,9 @@ export default function LibrarianRequests() {
                           variant="default"
                           onClick={() =>
                             handleReturnMutation.mutate({
-                              recordId: request.id,
-                              bookId: request.book.id,
-                              dueDate: request.due_date,
+                              recordId: request._id,
+                              bookId: request.book._id,
+                              dueDate: request.dueDate,
                               accept: true,
                             })
                           }
@@ -216,9 +216,9 @@ export default function LibrarianRequests() {
                           variant="destructive"
                           onClick={() =>
                             handleReturnMutation.mutate({
-                              recordId: request.id,
-                              bookId: request.book.id,
-                              dueDate: request.due_date,
+                              recordId: request._id,
+                              bookId: request.book._id,
+                              dueDate: request.dueDate,
                               accept: false,
                             })
                           }

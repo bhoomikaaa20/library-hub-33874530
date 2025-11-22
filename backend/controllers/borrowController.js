@@ -5,7 +5,7 @@ const Book = require('../models/Book');
 const getAllBorrows = async (req, res) => {
     try {
         const borrows = await Borrow.find()
-            .populate('user', 'name email')
+            .populate('user', 'name email studentId')
             .populate('book', 'title author');
         res.json(borrows);
     } catch (error) {
@@ -99,7 +99,8 @@ const updateBorrowStatus = async (req, res) => {
         }
 
         const updatedBorrow = await borrow.save();
-        await updatedBorrow.populate('user', 'name email').populate('book', 'title author');
+        await updatedBorrow.populate('user', 'name email');
+        await updatedBorrow.populate('book', 'title author');
         res.json(updatedBorrow);
     } catch (error) {
         res.status(500).json({ message: 'Error updating borrow status', error: error.message });
